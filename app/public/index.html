@@ -1,34 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <title>Chat System</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Chat Thời Gian Thực</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    #messages { list-style-type: none; padding: 0; max-height: 300px; overflow-y: scroll; border: 1px solid #ccc; }
-    #messages li { padding: 8px; border-bottom: 1px solid #ddd; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .chat-container { width: 100%; max-width: 500px; height: 90vh; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header { background: #0084ff; color: #fff; padding: 16px; text-align: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; }
+    .message { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+    .message.received { background: #e4e6eb; color: #050505; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .message.sent { background: #0084ff; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .message .username { font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px; font-weight: 600; }
+    .chat-input-area { display: flex; padding: 12px; background: #fff; border-top: 1px solid #e4e6eb; gap: 8px; }
+    .chat-input-area input { flex: 1; padding: 10px 16px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 0.95rem; }
+    .chat-input-area input:focus { border-color: #0084ff; }
+    .chat-input-area button { background: #0084ff; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .chat-input-area button:hover { background: #006bce; }
   </style>
 </head>
 <body>
-  <h2>Hệ Thống Chat Nội Bộ</h2>
-  <ul id="messages"></ul>
-  <input id="msg" placeholder="Nhập tin nhắn..." autocomplete="off"/>
-  <button onclick="send()">Gửi</button>
+
+  <div class="chat-container">
+    <div class="chat-header">💬 Chat System - Đề 32</div>
+    <div class="chat-messages" id="messages"></div>
+    <form class="chat-input-area" id="chat-form">
+      <input type="text" id="user-input" placeholder="Tên của bạn..." style="width: 30%; flex: none;" required />
+      <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." required autocomplete="off" />
+      <button type="submit">Gửi</button>
+    </form>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    socket.on('message', data => {
-      const item = document.createElement('li');
-      item.textContent = data;
-      document.getElementById('messages').appendChild(item);
-    });
-    function send() {
-      const input = document.getElementById('msg');
-      if (input.value) {
-        socket.emit('chatMessage', input.value);
-        input.value = '';
+    const form = document.getElementById('chat-form');
+    const msgInput = document.getElementById('msg-input');
+    const userInput = document.getElementById('user-input');
+    const messages = document.getElementById('messages');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (msgInput.value && userInput.value) {
+        socket.emit('chatMessage', { user: userInput.value, text: msgInput.value });
+        msgInput.value = '';
       }
-    }
+    });
+
+    socket.on('message', (data) => {
+      const msgDiv = document.createElement('div');
+      const currentUser = userInput.value;
+      const isMe = data.user === currentUser;
+
+      msgDiv.classList.add('message', isMe ? 'sent' : 'received');
+      msgDiv.innerHTML = `<div class="username">${data.user}</div><div>${data.text}</div>`;
+      
+      messages.appendChild(msgDiv);
+      messages.scrollTop = messages.scrollHeight;
+    });
   </script>
 </body>
 </html>
