@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat System</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #messages { list-style-type: none; padding: 0; max-height: 300px; overflow-y: scroll; border: 1px solid #ccc; }
+    #messages li { padding: 8px; border-bottom: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h2>Hệ Thống Chat Nội Bộ</h2>
+  <ul id="messages"></ul>
+  <input id="msg" placeholder="Nhập tin nhắn..." autocomplete="off"/>
+  <button onclick="send()">Gửi</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    socket.on('message', data => {
+      const item = document.createElement('li');
+      item.textContent = data;
+      document.getElementById('messages').appendChild(item);
+    });
+    function send() {
+      const input = document.getElementById('msg');
+      if (input.value) {
+        socket.emit('chatMessage', input.value);
+        input.value = '';
+      }
+    }
+  </script>
+</body>
+</html>
